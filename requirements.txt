@@ -1,0 +1,13 @@
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0+cu124
+scipy==1.16.1
+numpy==2.3.2
+sentence-transformers==5.1.0
+transformers==4.55.4
+tokenizers==0.21.4
+huggingface-hub==0.34.4
+scikit-learn==1.7.1
+optuna==3.6.1
+networkx==3.5
+tqdm==4.67.1
+pyyaml==6.0.2

@@ -1,0 +1,22 @@
+﻿[project]
+name = "cinderforge_e"
+version = "0.0.1"
+description = "CinderForge-E"
+requires-python = ">=3.9"
+
+[project.scripts]
+raincatcher = "cinderforge_e.raincatcher.run:main"
+cfe-quick = "cinderforge_e.validate.cli:main"
+cfe-study = "cinderforge_e.search.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["cinderforge_e*"]
+exclude = [
+  "reports*", "tests*", "notebooks*", "scripts*",
+  "assets*", "tmp*", "dist*", "build*"
+]
+

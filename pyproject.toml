@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cinderforge_e"
+version = "0.0.1"
+description = "CinderForge E + Raincatcher"
+requires-python = ">=3.10"
+
+[project.scripts]
+cfe-study = "cinderforge_e.search.cli:main"
+raincatcher = "cinderforge_e.raincatcher.run:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cinderforge_e*"]

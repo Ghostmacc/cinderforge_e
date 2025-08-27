@@ -1,0 +1,44 @@
+# ============================================================
+# CinderForge E + Raincatcher — config.template.yaml
+# Copy this file to:  config.yaml  (repo root) and edit as needed.
+# Every key is optional; all flags still work from the CLI.
+# ============================================================
+
+project: cinderforge_e
+
+defaults:
+  device: cuda            # "cuda" or "cpu"
+  precision: bf16         # bf16 | fp16 | fp32
+  seq_len: 256            # training sequence length
+  batch_size: 128
+  steps_per_epoch: 16     # optimizer steps per epoch (after accumulation)
+  accum_steps: 1          # gradient accumulation factor
+
+raincatcher:
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  plv_window: 128
+  plv_thresh: 0.7
+  noise_level: 0.0
+  out_json: results/rc.json
+  out_md: results/rc.md
+
+nas:
+  # Mode controls: observe (measure-only), gentle (light nudge), hard (stronger nudge)
+  rc_mode: observe        # observe | gentle | hard
+  rc_weight: null         # optional override weight; if set, takes precedence over rc_mode defaults
+  trials: 4
+  epochs: 4
+  unit_type: mhla_rope
+  out_dir: null           # default = reports/study_<timestamp>
+
+targets:
+  # Chaos targets; used by NAS scoring
+  plv_target: 0.60        # sweet spot near 0.55–0.70
+  plv_band: 0.10          # tolerance band around target before penalty
+  sigma_band: 0.10        # prefer sigma in [0.9, 1.1]
+  lambda_penalize_positive: true  # only penalize expansive (+) lambda
+
+reports:
+  write_heartbeat: true
+  # This is the *per-trial* path; the system will place one under each trial dir automatically.
+  heartbeat_name: heartbeat.ndjson
