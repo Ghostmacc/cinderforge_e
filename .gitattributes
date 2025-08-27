@@ -1,4 +1,12 @@
-* text=auto
+# Normalize text line endings and auto-detect text files
+* text=auto eol=lf
+
+# Treat common binaries explicitly
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary* text=auto
 *.py   text eol=lf
 *.md   text eol=lf
 *.toml text eol=lf
