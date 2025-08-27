@@ -1,21 +1,47 @@
-MIT License
+Proprietary License – All Rights Reserved
 
-Copyright (c) 2025 Ghostmacc
+Copyright (c) 2025 Ghostmacc. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Ownership. This repository, its source code, binaries, documentation, and
+	all associated materials (the "Software") are proprietary to the copyright
+	holder. No rights are granted except as expressly stated below.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. No License Granted. Except for the limited right to view the repository on
+	public hosting platforms, no permission is granted to use, run, copy,
+	modify, merge, publish, distribute, sublicense, sell, or create derivative
+	works of the Software, in whole or in part, without the prior express
+	written permission of the copyright holder.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+3. Cloning and Viewing Only. You may clone and view the repository solely for
+	personal review and archival purposes. Any other use (including execution,
+	building, benchmarking, or evaluation) requires written permission.
+
+4. No AI/ML Training or Data Mining. You may not use the Software or any
+	portion of it, including code, data, outputs, or metadata, to train,
+	fine‑tune, evaluate, or otherwise improve any machine learning systems,
+	including but not limited to large language models, code assistants, or
+	embeddings. You may not incorporate the Software into datasets for such
+	purposes.
+
+5. No Redistribution. You may not redistribute the Software or any portion of
+	it, in source or binary form, privately or publicly, without written
+	permission.
+
+6. Feedback. Any feedback, suggestions, or improvements you provide may be
+	used by the copyright holder without obligation.
+
+7. Disclaimer of Warranty. THE SOFTWARE IS PROVIDED "AS IS" AND WITHOUT
+	WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+	WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+	NON‑INFRINGEMENT.
+
+8. Limitation of Liability. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE
+	FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+	CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH
+	THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+9. Contact. For licensing inquiries, contact the repository owner via the
+	profile email on the hosting platform.
+
+If you do not agree to these terms, you must not use, run, copy, or distribute
+the Software.
