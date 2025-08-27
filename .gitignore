@@ -1,3 +1,40 @@
+# OS/Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.coverage*
+.benchmarks/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local data/results (adjust if you want these tracked)
+results/
+reports/
+*.ndjson
+*.log
+
+# Platform-specific
+Thumbs.db
 __pycache__/
 *.py[cod]
 *.egg-info/
