@@ -1,0 +1,8 @@
+#!/bin/sh
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -NoProfile -NonInteractive -File "$script_dir/pre-commit.ps1"
+  exit $?
+fi
+powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script_dir/pre-commit.ps1"
+exit $?
