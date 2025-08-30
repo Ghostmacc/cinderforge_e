@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cfe-config
+  namespace: cfe
+data:
+  CFE_GATE_MODE: "observe"
+  CFE_ROPE_VARIANT: "irope"
+  CFE_IROPE_GROUPS: "2"
+  CFE_ROPE_BASE: "10000"
+  CFE_METRICS_PROM: "1"
+  CFE_PROM_PORT: "9808"
+  CFE_METRICS_OTEL: "0"

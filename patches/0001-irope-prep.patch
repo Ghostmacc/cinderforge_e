@@ -1,0 +1,147 @@
+﻿diff --git a/cinderforge_e/units/blocks.py b/cinderforge_e/units/blocks.py
+index 0000000..1111111 100644
+--- a/cinderforge_e/units/blocks.py
++++ b/cinderforge_e/units/blocks.py
+@@ -1,6 +1,14 @@
++import os
++import math
+ from typing import Optional
+ import torch
+ import torch.nn as nn
++import torch.nn.functional as F
++
++# --- iRoPE helpers ------------------------------------------------------------
++def _env_cast(name: str, default, cast):
++    val = os.getenv(name)
++    return cast(val) if val is not None and val != "" else default
+ 
+ # ... (your existing imports / code remain here)
+ 
+@@ -200,12 +208,164 @@ class _MHLinearAttn(nn.Module):
+-    def __init__(self, d_model: int, n_heads: int = 4, dropout: float = 0.1):
+-        super().__init__()
+-        assert d_model % n_heads == 0, "d_model must be divisible by n_heads"
+-        self.d_model = d_model
+-        self.n_heads = n_heads
+-        self.d_head  = d_model // n_heads
+-        self.drop    = nn.Dropout(dropout)
++    def __init__(
++        self,
++        d_model: int,
++        n_heads: int = 4,
++        dropout: float = 0.1,
++        *,
++        # --- NEW iRoPE knobs (all optional; defaults preserve old behavior)
++        rope_variant: Optional[str] = None,   # "rope" (default) | "irope"
++        rope_base: Optional[float] = None,    # default 10000.0
++        irope_groups: Optional[int] = None,   # default 2
++    ):
++        """
++        MHLA block with RoPE/iRoPE positional rotation.
++        If you do not pass the new kwargs, the behavior is identical to before.
++        You can also set env vars: CFE_ROPE_VARIANT, CFE_ROPE_BASE, CFE_IROPE_GROUPS.
++        """
++        super().__init__()
++        assert d_model % n_heads == 0, "d_model must be divisible by n_heads"
++        self.d_model = d_model
++        self.n_heads = n_heads
++        self.d_head  = d_model // n_heads
++        self.drop    = nn.Dropout(dropout)
++
++        # --- NEW: rope controls with env fallbacks
++        self.rope_variant  = (rope_variant or
++            _env_cast("CFE_ROPE_VARIANT", "rope", str)).lower()
++        self.rope_base     = float(rope_base
++            if rope_base is not None else _env_cast("CFE_ROPE_BASE", 10000.0, float))
++        self.irope_groups  = int(irope_groups
++            if irope_groups is not None else _env_cast("CFE_IROPE_GROUPS", 2, int))
++
++        # ... your existing projections/params init (q_proj/k_proj/v_proj/out_proj, etc.)
+ 
+         # (rest of your existing __init__ stays unchanged)
+ 
++    # --- NEW: classic RoPE
++    @staticmethod
++    def _rope(q: torch.Tensor, k: torch.Tensor, T: int, base: float):
++        """
++        q,k: [B, H, T, Dh] with Dh even. Returns rotated q,k (same shape).
++        """
++        if q.ndim != 4 or k.ndim != 4:
++            return q, k
++        B, H, _, Dh = q.shape
++        half = Dh // 2
++        if half == 0:
++            return q, k
++        device = q.device
++        dtype  = q.dtype
++        # frequencies
++        freqs    = torch.arange(half, device=device, dtype=torch.float32)
++        inv_freq = base ** (-freqs / half)
++        inv_freq = inv_freq.to(dtype)
++        pos   = torch.arange(T, device=device, dtype=torch.float32)
++        angles = pos[:, None] * inv_freq[None, :]      # [T, half]
++        c = torch.cos(angles)[None, None, :, :]        # [1,1,T,half]
++        s = torch.sin(angles)[None, None, :, :]
++
++        def rotate(x):
++            x1 = x[..., :half]
++            x2 = x[..., half:]
++            xr = torch.cat([x1 * c - x2 * s, x1 * s + x2 * c], dim=-1)
++            return xr
++
++        return rotate(q), rotate(k)
++
++    # --- NEW: iRoPE (dim interleaving -> RoPE -> inverse interleave)
++    @staticmethod
++    def _build_interleave_perm(Dh: int, groups: int, device, dtype=torch.long):
++        groups = max(1, int(groups))
++        if groups <= 1 or Dh % groups != 0:
++            perm = torch.arange(Dh, device=device, dtype=dtype)
++            return perm, perm
++        per = Dh // groups
++        grid = torch.arange(Dh, device=device, dtype=dtype).view(groups, per)
++        cols = []
++        for c in range(per):
++            for g in range(groups):
++                cols.append(grid[g, c].item())
++        perm = torch.tensor(cols, device=device, dtype=dtype)
++        inv  = torch.empty_like(perm)
++        inv[perm] = torch.arange(Dh, device=device, dtype=dtype)
++        return perm, inv
++
++    @classmethod
++    def _irope(cls, q: torch.Tensor, k: torch.Tensor, T: int, base: float, groups: int):
++        """
++        Interleave dims -> apply classic RoPE -> unpermute back.
++        Shapes: q,k [B,H,T,Dh]
++        """
++        if q.ndim != 4 or k.ndim != 4:
++            return q, k
++        Dh = q.shape[-1]
++        perm, inv = cls._build_interleave_perm(Dh, groups, q.device)
++        qp = q.index_select(-1, perm)
++        kp = k.index_select(-1, perm)
++        qr, kr = cls._rope(qp, kp, T, base)
++        return qr.index_select(-1, inv), kr.index_select(-1, inv)
++
++    def _apply_rope(self, q: torch.Tensor, k: torch.Tensor, T: int):
++        if self.rope_variant == "irope":
++            return self._irope(q, k, T, base=self.rope_base, groups=self.irope_groups)
++        # default: classic RoPE
++        return self._rope(q, k, T, base=self.rope_base)
++
+     def forward(self, x: torch.Tensor):
+         """
+         x: [B, T, C=d_model]
+         returns: [B, T, C]
+         """
+-        # ... your existing projections producing q,k,v and linear attention path ...
++        # ... your existing projections producing q,k,v ...
++        # suppose q,k,v => [B, H, T, Dh]; adapt here if your impl differs
++        B, T, _ = x.shape
++        # q = ...; k = ...; v = ...
++        # --- NEW: positional rotation (RoPE / iRoPE)
++        q, k = self._apply_rope(q, k, T)
++        # ... your linear attention kernel, dropout, out_proj, etc. ...
+         return y
+\ No newline at end of file

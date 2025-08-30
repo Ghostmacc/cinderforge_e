@@ -11,3 +11,12 @@ optuna==3.6.1
 networkx==3.5
 tqdm==4.67.1
 pyyaml==6.0.2
+
+# runtime parallel + observability
+deepspeed>=0.14.2
+ray[train]>=2.30.0
+prometheus-client>=0.20.0
+opentelemetry-sdk>=1.25.0
+opentelemetry-exporter-otlp>=1.25.0
+opentelemetry-api>=1.25.0
+opentelemetry-instrumentation-system-metrics>=0.46b0

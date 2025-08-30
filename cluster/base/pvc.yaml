@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cfe-datasets
+  namespace: cfe
+spec:
+  accessModes: ["ReadOnlyMany"]
+  resources: { requests: { storage: 5Ti } }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cfe-checkpoints
+  namespace: cfe
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources: { requests: { storage: 10Ti } }

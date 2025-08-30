@@ -1,62 +1,52 @@
-# cinderforge_e/launch/ray_launcher.py
-from __future__ import annotations
-import os, argparse, json, time
-import ray
-from ray.train import RunConfig, ScalingConfig
+import os, argparse, ray
+from ray.train import ScalingConfig
 from ray.train.torch import TorchTrainer
-from ray.air import Checkpoint
 
 def train_loop_per_worker(config):
-    # Set torchrun-style env so your code path stays the same
-    import os, torch, torch.distributed as dist
-    from cinderforge_e.trainer.train_seq import run_training   # your existing entry
+    # Preserve knobs in workers.
+    os.environ.setdefault("CFE_ROPE_VARIANT", config.get("rope_variant", "irope"))
+    os.environ.setdefault("CFE_IROPE_GROUPS", str(config.get("irope_groups", 2)))
+    os.environ.setdefault("CFE_ROPE_BASE", str(config.get("rope_base", 10000)))
+    os.environ.setdefault("CFE_GATE_MODE", config.get("gate_mode", "observe"))
 
-    rank = int(os.environ.get("RANK", "0"))
-    world = int(os.environ.get("WORLD_SIZE", str(config["num_workers"])))
-    local_rank = int(os.environ.get("LOCAL_RANK", str(rank % torch.cuda.device_count())))
-    os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
-    os.environ.setdefault("MASTER_PORT", "29500")
-    os.environ.setdefault("WORLD_SIZE", str(world))
-    os.environ.setdefault("RANK", str(rank))
-    os.environ.setdefault("LOCAL_RANK", str(local_rank))
+    # Import late so Ray workers have env set.
+    from cinderforge_e.trainer.train_seq import entrypoint
+    entrypoint(config.get("trainer_args", {}))
 
-    # Tell your trainer we are in Ray-DDP
-    os.environ.setdefault("CFE_LAUNCHER", "torchrun")
+def parse_args():
+    ap = argparse.ArgumentParser("CFE Ray Train Launcher")
+    ap.add_argument("--num-workers", type=int, default=int(os.getenv("NUM_WORKERS", "8")))
+    ap.add_argument("--use-gpu", action="store_true", default=True)
+    ap.add_argument("--trainer-arg", action="append", default=[], help="k=v pairs")
+    return ap.parse_args()
 
-    # Optional: pass nudges centrally via config (rank-safe)
-    nudge = config.get("nudge", "auto")
-    os.environ.setdefault("CFE_GATE_MODE", nudge)  # your code should read this into cfg.gate.mode
-
-    # Run your normal training (reads YAML + env knobs)
-    run_training()  # inside, you already do DDP init if torchrun-like env exist
+def kvs_to_dict(kvs):
+    out = {}
+    for kv in kvs:
+        k, v = kv.split("=", 1)
+        # simple coercions
+        if v.isdigit(): v = int(v)
+        elif v.replace('.','',1).isdigit(): v = float(v)
+        out[k] = v
+    return out
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--num-workers", type=int, default=8)
-    ap.add_argument("--use-gpu", action="store_true", default=True)
-    ap.add_argument("--nudge", type=str, default="auto", choices=["off","observe","gentle","hard","auto"])
-    ap.add_argument("--results", type=str, default="ray_results/cfe")
-    args = ap.parse_args()
-
-    ray.init(address="auto", ignore_reinit_error=True)
-
+    a = parse_args()
+    ray.init(address=os.getenv("RAY_ADDRESS", "auto"))  # works on KubeRay
+    cfg = {
+        "rope_variant": os.getenv("CFE_ROPE_VARIANT", "irope"),
+        "irope_groups": int(os.getenv("CFE_IROPE_GROUPS", "2")),
+        "rope_base": float(os.getenv("CFE_ROPE_BASE", "10000")),
+        "gate_mode": os.getenv("CFE_GATE_MODE", "observe"),
+        "trainer_args": kvs_to_dict(a.trainer_arg),
+    }
     trainer = TorchTrainer(
         train_loop_per_worker=train_loop_per_worker,
-        train_loop_config={"num_workers": args.num_workers, "nudge": args.nudge},
-        scaling_config=ScalingConfig(
-            num_workers=args.num_workers,
-            use_gpu=args.use_gpu,
-            resources_per_worker={"CPU": 1, "GPU": 1},
-            trainer_resources={"CPU": 1}
-        ),
-        run_config=RunConfig(
-            name=f"cfe_{int(time.time())}",
-            storage_path=args.results,
-            checkpoint_config=None
-        ),
+        train_loop_config=cfg,
+        scaling_config=ScalingConfig(num_workers=a.num_workers, use_gpu=a.use_gpu),
     )
     result = trainer.fit()
-    print("Ray Train finished:", result)
+    print("Ray Train result:", result)
 
 if __name__ == "__main__":
     main()
