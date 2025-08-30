@@ -1,0 +1,11 @@
+cluster_name: cfe-ray
+max_workers: 8
+upscaling_speed: 1.0
+idle_timeout_minutes: 15
+provider: {type: aws, region: us-east-1}
+head_node: {InstanceType: g5.8xlarge}
+worker_nodes: {InstanceType: g5.8xlarge}
+file_mounts: {}
+auth: {ssh_user: ubuntu}
+setup_commands:
+  - pip install -U ray[train]==2.34 torch torchvision
