@@ -1,4 +1,6 @@
-# CFE + Raincatcher — Quick Commands
+﻿(*First use expands ABBR → Definition: PLV (**phase‑locking value**), σ (**branching factor**), λ (**local Lyapunov proxy**).*)
+
+# CFE + Raincatcher â€” Quick Commands
 
 ## Activate & reinstall after edits
 ```powershell
@@ -41,3 +43,4 @@ cfe-study --trials 2 --epochs 2 --device cuda --precision bf16 --seq_len 4096 `
   --batch_size 8 --accum_steps 4 --steps_per_epoch 24 `
   --unit_type mhla_rope --rc_mode observe
 ```
+

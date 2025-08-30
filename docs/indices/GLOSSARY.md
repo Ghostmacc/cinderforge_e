@@ -1,0 +1,27 @@
+﻿# CFE Glossary (ABBR → Definition)
+
+- NAS — **Neural Architecture Search**.
+- RC — **Raincatcher** (our dynamics instrumentation + reports).
+- CLI — **Command‑Line Interface**.
+- PLV — **Phase‑Locking Value** (attractor coherence, 0–1).
+- σ — **Sigma**, **branching factor** (token‑transition out‑degree; ≈1 at edge‑of‑chaos).
+- λ — **Local Lyapunov proxy** (sign of expansion; λ ≤ 0 contractive/neutral, λ > 0 expansive).
+- MHLA — **Multi‑Head Linear Attention**.
+- RoPE — **Rotary Positional Embedding**.
+- iRoPE — **Interleaved RoPE** (Cerebros variant, used in comparisons).
+- SSM — **State Space Model** (block).
+- BF16 — **bfloat16** precision (16‑bit).
+- FP16 / FP32 — **float16 / float32** precision.
+- CUDA — **NVIDIA GPU compute** platform.
+- GPU — **Graphics Processing Unit**.
+- NDJSON — **Newline‑Delimited JSON**.
+- JSON — **JavaScript Object Notation**.
+- YAML — **YAML Ain’t Markup Language**.
+- TOML — **Tom’s Obvious, Minimal Language**.
+- O(n) — **linear‑time** complexity.
+- B×L — **Batch × Sequence Length** (grid for throughput tests).
+- venv — **Python virtual environment**.
+- rc_mode — **Raincatcher regularization mode** (*observe*, *gentle*, *hard*; *auto* planned).
+- steps_per_epoch — **optimizer steps per epoch** (after accumulation).
+- accum_steps — **gradient accumulation micro‑batches per step**.
+- seq_len — **sequence length** for a study.
