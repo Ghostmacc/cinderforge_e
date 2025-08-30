@@ -42,6 +42,7 @@ class _MHLinearAttn(nn.Module):
         self.rope_variant = os.getenv("CFE_ROPE_VARIANT", "rope").lower()  # "rope" or "irope"
         self.rope_base    = float(os.getenv("CFE_ROPE_BASE", "10000"))
         self.irope_groups = int(os.getenv("CFE_IROPE_GROUPS", "2"))
+        self.head_scale_fix = os.getenv("CFE_HEAD_SCALE_FIX", "true").lower() == "true"
 
     @staticmethod
     def _rope(q: torch.Tensor, k: torch.Tensor, base: float = 10000.0):
@@ -86,7 +87,8 @@ class _MHLinearAttn(nn.Module):
         q, k = apply_posenc(q, k, T,
                             variant=self.rope_variant,
                             base=self.rope_base,
-                            groups=self.irope_groups)
+                            groups=self.irope_groups,
+                            head_scale_fix=self.head_scale_fix)
         # Feature map
         q = self._phi(q)
         k = self._phi(k)

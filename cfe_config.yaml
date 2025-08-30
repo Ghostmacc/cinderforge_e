@@ -1,0 +1,35 @@
+# cfe_config.yaml - Authoritative configuration for CinderForge-E
+# Single source of truth for runtime knobs
+
+gate:
+  mode: observe   # one of: off|observe|gentle|hard|auto
+  schmitt:
+    open: 0.75    # fused score to open (e.g., PLV & Rayleigh-fused)
+    close: 0.65   # lower than open to avoid chatter
+  min_inter_gate_steps: 32
+
+targets:
+  plv: 0.60       # coherence sweet spot
+  sigma: 1.00     # near-critical branching
+  lambda: 0.00    # non-positive local Lyapunov
+
+weights:            # penalty weights in "hard" / base weights in "auto"
+  plv: 0.75
+  sigma: 0.50
+  lambda: 1.00
+
+auto:
+  enabled: true
+  k_i: 0.10       # integral gain (slow)
+  k_p: 0.25       # proportional gain (gentle)
+  max_step: 0.10  # max abs change per epoch per weight
+  hysteresis: 0.05
+  warmup_steps: 512
+
+irope:
+  enabled: true
+  base_theta: 10000.0
+  interleave_every: 2      # dims interleaving period
+  head_scale_fix: true     # rescale per head after rotation
+  warmup_steps: 512        # do not apply dynamics penalties during this
+  linear_attention: true   # O(n) path (e.g., φ(Q)φ(K)^T trick)
