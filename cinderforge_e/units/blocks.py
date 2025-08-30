@@ -1,8 +1,10 @@
 ﻿import math
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Callable, Dict
+from .rope_variants import apply_posenc
 
 # ---- Simple registry ----
 UNIT_REGISTRY: Dict[str, Callable] = {}
@@ -35,6 +37,11 @@ class _MHLinearAttn(nn.Module):
         self.v = nn.Linear(d_model, d_model, bias=False)
         self.o = nn.Linear(d_model, d_model, bias=False)
         self.drop = nn.Dropout(dropout)
+
+        # iRoPE knobs (env-driven; defaults preserve old behavior)
+        self.rope_variant = os.getenv("CFE_ROPE_VARIANT", "rope").lower()  # "rope" or "irope"
+        self.rope_base    = float(os.getenv("CFE_ROPE_BASE", "10000"))
+        self.irope_groups = int(os.getenv("CFE_IROPE_GROUPS", "2"))
 
     @staticmethod
     def _rope(q: torch.Tensor, k: torch.Tensor, base: float = 10000.0):
@@ -74,8 +81,12 @@ class _MHLinearAttn(nn.Module):
         k = self.k(x).view(B, T, self.h, self.dh).permute(0, 2, 1, 3)
         v = self.v(x).view(B, T, self.h, self.dh).permute(0, 2, 1, 3)
 
-        # Apply RoPE
-        q, k = self._rope(q, k)
+        # positional rotation (RoPE / iRoPE)
+        T = q.shape[2]
+        q, k = apply_posenc(q, k, T,
+                            variant=self.rope_variant,
+                            base=self.rope_base,
+                            groups=self.irope_groups)
         # Feature map
         q = self._phi(q)
         k = self._phi(k)
